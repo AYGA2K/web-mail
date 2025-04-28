@@ -2,19 +2,25 @@ import type { Context } from "hono"
 import { UserModel } from "../models/user.model.js"
 
 export class AuthController {
-  static async register(c: Context) {
+  private userModel: UserModel
+
+  constructor() {
+    this.userModel = new UserModel()
+  }
+
+  async register(c: Context) {
     const { email, password } = await c.req.json()
 
     try {
       // Check if user already exists
-      const existingUser = await UserModel.findByEmail(email)
+      const existingUser = await this.userModel.findByEmail(email)
       if (existingUser) {
         return c.json({ error: 'Email already in use' }, 400)
       }
 
       // Create new user
-      const user = await UserModel.create({ email, password })
-      const token = UserModel.generateAuthToken(user)
+      const user = await this.userModel.create({ email, password })
+      const token = this.userModel.generateAuthToken(user)
 
       return c.json({
         user: {
@@ -28,16 +34,16 @@ export class AuthController {
     }
   }
 
-  static async login(c: Context) {
+  async login(c: Context) {
     const { email, password } = await c.req.json()
 
     try {
-      const user = await UserModel.verifyCredentials(email, password)
+      const user = await this.userModel.verifyCredentials(email, password)
       if (!user) {
         return c.json({ error: 'Invalid credentials' }, 401)
       }
 
-      const token = UserModel.generateAuthToken(user)
+      const token = this.userModel.generateAuthToken(user)
       return c.json({
         user: {
           id: user.id,
@@ -50,7 +56,7 @@ export class AuthController {
     }
   }
 
-  static async me(c: Context) {
+  async me(c: Context) {
     const authHeader = c.req.header('Authorization')
 
     if (!authHeader) {
@@ -58,17 +64,14 @@ export class AuthController {
     }
 
     const token = authHeader.split(' ')[1]
-    const user = UserModel.verifyToken(token)
+    const user = this.userModel.verifyToken(token)
 
     if (!user) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
     return c.json({
-      user: {
-        id: user.userId,
-        email: user.email
-      }
+      user
     })
   }
 }

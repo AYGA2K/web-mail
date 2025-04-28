@@ -1,18 +1,30 @@
-// This is a placeholder for real database connection
-// In a production app, you would connect to PostgreSQL, MongoDB, etc.
+import { Kysely, SqliteDialect } from 'kysely'
+import Database from 'better-sqlite3'
+import type { UserTable } from '../entities/user.entity.js'
+import type { Email } from '../entities/mail.entity.js'
 
-export const connectDB = async () => {
-  console.log('Database connected (simulated)')
-  // In a real app:
-  // await mongoose.connect(process.env.MONGODB_URI!)
-  // or
-  // await prisma.$connect()
+interface DB {
+  users: UserTable
+  emails: Email
 }
 
-export const disconnectDB = async () => {
-  console.log('Database disconnected (simulated)')
-  // In a real app:
-  // await mongoose.disconnect()
-  // or
-  // await prisma.$disconnect()
+let dbInstance: Kysely<DB> | null = null
+let sqliteInstance: Database.Database | null = null
+
+export function getDB() {
+  if (!dbInstance) {
+    sqliteInstance = new Database('sqlite.db')
+    dbInstance = new Kysely<DB>({
+      dialect: new SqliteDialect({ database: sqliteInstance })
+    })
+  }
+  return dbInstance
+}
+
+export function disconnectDB() {
+  if (sqliteInstance) {
+    sqliteInstance.close()
+    sqliteInstance = null
+  }
+  dbInstance = null
 }

@@ -1,43 +1,46 @@
-import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { getDB } from '../database/db.js'
+import type { User } from '../types/user.type.js';
 
-export const UserSchema = z.object({
-  id: z.string().uuid().optional(),
-  email: z.string().email(),
-  password: z.string().min(6),
-  createdAt: z.date().default(() => new Date())
-})
 
-export type User = z.infer<typeof UserSchema>
+export class UserModel {
+  async create({ email, password }: { email: string; password: string }): Promise<User> {
+    const db = getDB()
+    const id = crypto.randomUUID()
+    const createdAt = new Date().toISOString()
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-// In-memory database simulation
-const users: User[] = []
+    await db.insertInto('users')
+      .values({
+        id,
+        email,
+        password: hashedPassword,
+        createdAt
+      })
+      .execute()
 
-export const UserModel = {
-  async create(userData: Omit<User, 'id' | 'createdAt'>): Promise<User> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10)
-    const newUser: User = {
-      ...userData,
-      id: crypto.randomUUID(),
-      password: hashedPassword,
-      createdAt: new Date()
-    }
-    users.push(newUser)
-    return newUser
-  },
+    return { id, email, createdAt }
+  }
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    return users.find(u => u.email === email)
-  },
+  async findByEmail(email: string): Promise<{ id: string, password: string, email: string, createdAt: string } | undefined> {
+    const db = getDB()
+    const user = await db.selectFrom('users')
+      .selectAll()
+      .where('email', '=', email)
+      .executeTakeFirst()
 
-  async verifyCredentials(email: string, password: string): Promise<User | undefined> {
+    return user ?? undefined
+  }
+
+  async verifyCredentials(email: string, password: string): Promise<User | void> {
     const user = await this.findByEmail(email)
-    if (!user) return undefined
-
+    if (!user) return
+    if (user.password === undefined) return
     const isValid = await bcrypt.compare(password, user.password)
-    return isValid ? user : undefined
-  },
+    if (!isValid) return
+    return { id: user.id, email: user.email, createdAt: user.createdAt }
+  }
 
   generateAuthToken(user: User): string {
     return jwt.sign(
@@ -45,13 +48,15 @@ export const UserModel = {
       process.env.JWT_SECRET!,
       { expiresIn: '1d' }
     )
-  },
-
-  verifyToken(token: string): { userId: string; email: string } | null {
+  }
+  verifyToken(token: string): User | null {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; email: string }
-    } catch {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; email: string }
+      return { id: decoded.userId, email: decoded.email, createdAt: '' }
+    } catch (error) {
       return null
     }
   }
+
 }
+

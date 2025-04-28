@@ -2,10 +2,10 @@ import { Hono } from 'hono'
 import { MailController } from '../controllers/mail.controller.js'
 
 const mailRoutes = new Hono()
+const mailController = new MailController()
 
-mailRoutes.post('/send', MailController.sendEmail)
-mailRoutes.get('/inbox', MailController.getInbox)
-mailRoutes.get('/:id', MailController.getEmail)
-mailRoutes.delete('/:id', MailController.deleteEmail)
+mailRoutes.post('/send', mailController.send)
+mailRoutes.get('/:id', mailController.getEmail)
+mailRoutes.delete('/:id', mailController.deleteEmail)
 
 export default mailRoutes

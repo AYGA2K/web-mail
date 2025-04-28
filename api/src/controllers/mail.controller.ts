@@ -1,102 +1,103 @@
-import type { Context } from 'hono'
-import { MailModel } from '../models/mail.model.js'
-import { UserModel } from '../models/user.model.js'
+import type { Context } from "hono"
+import { MailModel } from "../models/email.model.js"
+import { UserModel } from "../models/user.model.js"
 
 export class MailController {
-  static async sendEmail(c: Context) {
-    const body = await c.req.json()
-    const authHeader = c.req.header('Authorization')
+  private mailModel: MailModel
+  private userModel: UserModel
 
-    if (!authHeader) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
+  constructor() {
+    this.mailModel = new MailModel()
+    this.userModel = new UserModel()
+  }
 
-    const token = authHeader.split(' ')[1]
-    const user = UserModel.verifyToken(token)
-
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
+  async send(c: Context) {
+    const { from, to, subject, body, userId } = await c.req.json()
 
     try {
-      const emailData = {
-        from: user.email,
-        to: body.to,
-        subject: body.subject,
-        body: body.body,
-        userId: user.userId
+      // Ensure the sender user exists
+      const user = await this.userModel.findByEmail(from)
+      if (!user) {
+        return c.json({ error: 'Sender not found' }, 404)
       }
 
-      const newEmail = await MailModel.create(emailData)
-      return c.json(newEmail, 201)
+      // Create new email
+      const email = await this.mailModel.create({
+        from,
+        to,
+        subject,
+        body,
+        userId
+      })
+
+      return c.json({ email }, 201)
     } catch (error) {
       return c.json({ error: 'Failed to send email' }, 400)
     }
   }
 
-  static async getInbox(c: Context) {
-    const authHeader = c.req.header('Authorization')
+  async getEmails(c: Context) {
+    const userId = c.req.param('userId')
 
-    if (!authHeader) {
-      return c.json({ error: 'Unauthorized' }, 401)
+    try {
+      // Fetch all emails for the user
+      const emails = await this.mailModel.findByUser(userId)
+
+      return c.json({ emails })
+    } catch (error) {
+      return c.json({ error: 'Failed to retrieve emails' }, 400)
     }
-
-    const token = authHeader.split(' ')[1]
-    const user = UserModel.verifyToken(token)
-
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
-    const emails = await MailModel.findByUser(user.userId)
-    return c.json(emails)
   }
 
-  static async getEmail(c: Context) {
-    const id = c.req.param('id')
-    const authHeader = c.req.header('Authorization')
+  async getEmail(c: Context) {
+    const userId = c.req.param('userId')
+    const emailId = c.req.param('emailId')
 
-    if (!authHeader) {
-      return c.json({ error: 'Unauthorized' }, 401)
+    try {
+      // Fetch a specific email for the user
+      const email = await this.mailModel.findById(emailId, userId)
+
+      if (!email) {
+        return c.json({ error: 'Email not found' }, 404)
+      }
+
+      return c.json({ email })
+    } catch (error) {
+      return c.json({ error: 'Failed to retrieve email' }, 400)
     }
-
-    const token = authHeader.split(' ')[1]
-    const user = UserModel.verifyToken(token)
-
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
-    const email = await MailModel.findById(id, user.userId)
-    if (!email) {
-      return c.json({ error: 'Email not found' }, 404)
-    }
-
-    // Mark as read when fetched
-    await MailModel.markAsRead(id, user.userId)
-    return c.json(email)
   }
 
-  static async deleteEmail(c: Context) {
-    const id = c.req.param('id')
-    const authHeader = c.req.header('Authorization')
+  async markAsRead(c: Context) {
+    const userId = c.req.param('userId')
+    const emailId = c.req.param('emailId')
 
-    if (!authHeader) {
-      return c.json({ error: 'Unauthorized' }, 401)
+    try {
+      const email = await this.mailModel.markAsRead(emailId, userId)
+
+      if (!email) {
+        return c.json({ error: 'Email not found or already marked as read' }, 404)
+      }
+
+      return c.json({ email })
+    } catch (error) {
+      return c.json({ error: 'Failed to mark email as read' }, 400)
     }
+  }
 
-    const token = authHeader.split(' ')[1]
-    const user = UserModel.verifyToken(token)
+  async deleteEmail(c: Context) {
+    const userId = c.req.param('userId')
+    const emailId = c.req.param('emailId')
 
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401)
+    try {
+      const deleted = await this.mailModel.delete(emailId, userId)
+
+      if (!deleted) {
+        return c.json({ error: 'Email not found or already deleted' }, 404)
+      }
+
+      return c.json({ message: 'Email deleted successfully' })
+    } catch (error) {
+      return c.json({ error: 'Failed to delete email' }, 400)
     }
-
-    const success = await MailModel.delete(id, user.userId)
-    if (!success) {
-      return c.json({ error: 'Email not found' }, 404)
-    }
-
-    return c.json({ message: 'Email deleted successfully' })
   }
 }
