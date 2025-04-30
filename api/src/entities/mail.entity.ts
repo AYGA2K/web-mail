@@ -4,7 +4,8 @@ export interface Email {
   to: string;
   subject: string;
   body: string;
-  createdAt: string;
   isRead: boolean;
   userId: string;
+  created_at: Date | null;
+  updated_at: Date | null;
 }

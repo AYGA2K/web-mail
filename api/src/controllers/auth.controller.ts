@@ -1,5 +1,7 @@
 import type { Context } from "hono"
 import { UserModel } from "../models/user.model.js"
+import type { CreateUserDto } from "../schemas/user/create-user.schema.js"
+import { ApiResponse } from "../utils/response.util.js"
 
 export class AuthController {
   private userModel: UserModel
@@ -10,71 +12,84 @@ export class AuthController {
 
   register = async (c: Context) => {
     try {
-      const { email, password } = await c.req.json()
+      const createUserDto: CreateUserDto = await c.req.json()
+
       // Check if user already exists
-      const existingUser = await this.userModel.findByEmail(email)
+      const existingUser = await this.userModel.findByEmail(createUserDto.email)
       if (existingUser) {
-        return c.json({ error: 'Email already in use' }, 400)
+        return ApiResponse.error(c, {
+          status: 400,
+          message: 'Email already in use',
+        })
       }
 
       // Create new user
-      const user = await this.userModel.create({ email, password })
+      const user = await this.userModel.create(createUserDto)
       if (!user) {
-        return c.json({ error: 'Registration failed' }, 500)
+        return ApiResponse.internalServerError(c, 'Registration failed')
       }
-      const token = this.userModel.generateAuthToken(user)
 
-      return c.json({
-        user: {
-          id: user.id,
-          email: user.email
-        },
-        token
-      }, 201)
+      return ApiResponse.success(c, {
+        data: { user },
+        message: 'User registered successfully',
+        status: 201
+      })
     } catch (error) {
       console.error(error)
-      return c.json({ error: 'Registration failed' }, 500)
+      return ApiResponse.internalServerError(c, 'Registration failed')
     }
   }
 
   login = async (c: Context) => {
-    const { email, password } = await c.req.json()
-
     try {
+      const { email, password } = await c.req.json()
       const user = await this.userModel.verifyCredentials(email, password)
+
       if (!user) {
-        return c.json({ error: 'Invalid credentials' }, 401)
+        return ApiResponse.unauthorized(c, 'Invalid credentials')
       }
 
       const token = await this.userModel.generateAuthToken(user)
-      return c.json({
-        user: {
-          id: user.id,
-          email: user.email
+      return ApiResponse.success(c, {
+        data: {
+          user: {
+            id: user.id,
+            email: user.email
+          },
+          token
         },
-        token
+        message: 'Login successful'
       })
     } catch (error) {
-      return c.json({ error: 'Login failed' }, 400)
+      console.error(error)
+      return ApiResponse.error(c, {
+        status: 400,
+        message: 'Login failed',
+      })
     }
   }
 
   me = async (c: Context) => {
-    const authHeader = c.req.header('Authorization')
+    try {
+      const authHeader = c.req.header('Authorization')
+      if (!authHeader) {
+        return ApiResponse.unauthorized(c)
+      }
 
-    if (!authHeader) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      const token = authHeader.split(' ')[1]
+      const user = await this.userModel.verifyToken(token)
+
+      if (!user) {
+        return ApiResponse.unauthorized(c)
+      }
+
+      return ApiResponse.success(c, {
+        data: { user },
+        message: 'User profile retrieved successfully'
+      })
+    } catch (error) {
+      console.error(error)
+      return ApiResponse.unauthorized(c)
     }
-
-    const token = authHeader.split(' ')[1]
-    const user = await this.userModel.verifyToken(token)
-
-    if (!user) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
-    return c.json({
-      user
-    })
   }
 }

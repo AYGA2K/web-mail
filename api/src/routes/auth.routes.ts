@@ -1,11 +1,45 @@
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { AuthController } from '../controllers/auth.controller.js'
+import { createUserSchema } from '../schemas/user/create-user.schema.js'
+import { loginUserSchema } from '../schemas/user/login-user.schema.js'
+import { buildOpenAPIRoute } from '../utils/openapi.util.js'
 
-const authRoutes = new Hono()
+const authRoutes = new OpenAPIHono()
 const authController = new AuthController()
 
-authRoutes.post('/register', authController.register)
-authRoutes.post('/login', authController.login)
-authRoutes.get('/me', authController.me)
+authRoutes.openapi(
+  buildOpenAPIRoute({
+    name: 'Auth',
+    method: 'post',
+    path: '/register',
+    summary: 'Register a new user',
+    description: 'User registered',
+    schema: createUserSchema,
+  }),
+  authController.register
+)
+
+authRoutes.openapi(
+  buildOpenAPIRoute({
+    name: 'Auth',
+    method: 'post',
+    path: '/login',
+    summary: 'Log in a user',
+    description: 'Login successful',
+    schema: loginUserSchema,
+  }),
+  authController.login
+)
+
+authRoutes.openapi(
+  buildOpenAPIRoute({
+    name: 'Auth',
+    method: 'get',
+    path: '/me',
+    summary: 'Get current user info',
+    description: 'Current user data',
+  }),
+  authController.me
+)
 
 export default authRoutes

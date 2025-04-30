@@ -5,10 +5,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('users')
     .addColumn('id', 'text', (col) => col.primaryKey())
     .addColumn('email', 'text', (col) => col.notNull().unique())
+    .addColumn('first_name', 'text', (col) => col.notNull())
+    .addColumn('last_name', 'text', (col) => col.notNull())
     .addColumn('password', 'text', (col) => col.notNull())
-    .addColumn('created_at', 'text', (col) =>
+    .addColumn('created_at', 'date', (col) =>
       col.defaultTo(sql`CURRENT_TIMESTAMP`)
     )
+    .addColumn('updated_at', 'date')
     .execute()
 }
 

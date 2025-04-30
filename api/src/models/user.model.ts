@@ -1,34 +1,36 @@
 import bcrypt from 'bcryptjs'
 import { getDB } from '../database/db.js'
-import type { User } from '../types/user.type.js';
-import { decode, sign, verify } from 'hono/jwt'
+import { sign, verify } from 'hono/jwt'
+import type { User } from '../entities/user.entity.js';
+import type { CreateUserDto } from '../schemas/user/create-user.schema.js';
+import type { CreateUserResponseDto } from '../schemas/user/user-response.schema.js';
 
 
 export class UserModel {
-  async create({ email, password }: { email: string; password: string })
-    : Promise<User | undefined> {
+  async create(createUserDto: CreateUserDto)
+    : Promise<CreateUserResponseDto | undefined> {
     try {
       const db = getDB()
       const id = crypto.randomUUID()
-      const created_at = new Date().toISOString()
-      const hashedPassword = await bcrypt.hash(password, 10)
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
       await db.insertInto('users')
         .values({
           id,
-          email,
+          email: createUserDto.email,
+          first_name: createUserDto.first_name,
+          last_name: createUserDto.last_name,
           password: hashedPassword,
-          created_at
         })
-        .execute()
+        .executeTakeFirst()
+      return { id: id, email: createUserDto.email, first_name: createUserDto.first_name, last_name: createUserDto.last_name }
 
-      return { id, email, created_at }
     } catch (error) {
       console.error(error)
     }
     return undefined
   }
 
-  async findByEmail(email: string): Promise<{ id: string, password: string, email: string, created_at: string } | undefined> {
+  async findByEmail(email: string): Promise<User | undefined> {
     const db = getDB()
     const user = await db.selectFrom('users')
       .selectAll()
@@ -38,16 +40,16 @@ export class UserModel {
     return user ?? undefined
   }
 
-  async verifyCredentials(email: string, password: string): Promise<User | void> {
+  async verifyCredentials(email: string, password: string): Promise<CreateUserResponseDto | void> {
     const user = await this.findByEmail(email)
     if (!user) return
     if (user.password === undefined) return
     const isValid = await bcrypt.compare(password, user.password)
     if (!isValid) return
-    return { id: user.id, email: user.email, created_at: user.created_at }
+    return { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email }
   }
 
-  async generateAuthToken(user: User): Promise<string> {
+  async generateAuthToken(user: CreateUserResponseDto): Promise<string> {
     if (!user.id || !user.email) return ''
     const payload = {
       ...user,
@@ -64,9 +66,9 @@ export class UserModel {
       return ''
     }
   }
-  async verifyToken(token: string): Promise<User | null> {
+  async verifyToken(token: string): Promise<CreateUserResponseDto | null> {
     try {
-      const decoded = await verify(token, process.env.JWT_SECRET!) as { id: string, email: string, created_at: string }
+      const decoded = await verify(token, process.env.JWT_SECRET!) as CreateUserResponseDto
       return decoded
     } catch (error) {
       console.error(error)
