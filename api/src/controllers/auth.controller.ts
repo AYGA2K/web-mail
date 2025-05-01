@@ -1,6 +1,6 @@
 import type { Context } from "hono"
 import { UserModel } from "../models/user.model.js"
-import type { CreateUserDto } from "../schemas/user/create-user.schema.js"
+import type { CreateUserDto } from "../schemas/user/request/create.schema.js"
 import { ApiResponse } from "../utils/response.util.js"
 
 export class AuthController {

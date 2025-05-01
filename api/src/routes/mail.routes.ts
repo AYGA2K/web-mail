@@ -5,7 +5,9 @@ const mailRoutes = new Hono()
 const mailController = new MailController()
 
 mailRoutes.post('/send', mailController.send)
-mailRoutes.get('/:id', mailController.getEmail)
 mailRoutes.delete('/:id', mailController.deleteEmail)
+mailRoutes.get('/:userId', mailController.getEmailsByUser)
+mailRoutes.patch('/:id/read', mailController.markAsRead)
+mailRoutes.get('/:userId/:emailId', mailController.getEmail)
 
 export default mailRoutes

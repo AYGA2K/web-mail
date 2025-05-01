@@ -1,39 +1,41 @@
 import { getDB } from '../database/db.js'
 import type { Email } from '../entities/mail.entity.js';
+import type { CreateEmailDto } from '../schemas/emails/request/create.schema.js';
+import type { CreateEmailResponseDto } from '../schemas/emails/response/create.schema.js';
+import type { listEmailResponseDto } from '../schemas/emails/response/list.schema.js';
 
 export class MailModel {
-  async create({ from, to, subject, body, userId }: { from: string; to: string; subject: string; body: string; userId: string }): Promise<Email> {
+  async create(createEmailDto: CreateEmailDto): Promise<CreateEmailResponseDto> {
     const db = getDB()
     const id = crypto.randomUUID()
-    const createdAt = new Date().toISOString()
+    const created_at = new Date()
 
     await db.insertInto('emails')
       .values({
         id,
-        from,
-        to,
-        subject,
-        body,
-        createdAt,
+        from: createEmailDto.from,
+        to: createEmailDto.to,
+        subject: createEmailDto.subject,
+        body: createEmailDto.body,
         isRead: false,
-        userId
+        userId: createEmailDto.userId,
+        created_at,
       })
       .execute()
 
-    return { id, from, to, subject, body, createdAt, isRead: false, userId }
+    return { id, from: createEmailDto.from, to: createEmailDto.to, subject: createEmailDto.subject, body: createEmailDto.body, created_at, isRead: false, userId: createEmailDto.userId }
   }
 
-  async findByUser(userId: string): Promise<Email[]> {
+  async findByUser(userId: string): Promise<listEmailResponseDto[]> {
     const db = getDB()
     const emails = await db.selectFrom('emails')
       .selectAll()
       .where('userId', '=', userId)
       .execute()
-
     return emails
   }
 
-  async findById(id: string, userId: string): Promise<Email | undefined> {
+  async findById(id: string, userId: string): Promise<listEmailResponseDto | undefined> {
     const db = getDB()
     const email = await db.selectFrom('emails')
       .selectAll()
@@ -44,7 +46,7 @@ export class MailModel {
     return email ?? undefined
   }
 
-  async markAsRead(id: string, userId: string): Promise<Email | undefined> {
+  async markAsRead(id: string, userId: string): Promise<listEmailResponseDto | undefined> {
     const db = getDB()
     const email = await db.selectFrom('emails')
       .selectAll()

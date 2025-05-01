@@ -2,9 +2,8 @@ import bcrypt from 'bcryptjs'
 import { getDB } from '../database/db.js'
 import { sign, verify } from 'hono/jwt'
 import type { User } from '../entities/user.entity.js';
-import type { CreateUserDto } from '../schemas/user/create-user.schema.js';
-import type { CreateUserResponseDto } from '../schemas/user/user-response.schema.js';
-
+import type { CreateUserDto } from '../schemas/user/request/create.schema.js';
+import type { CreateUserResponseDto } from '../schemas/user/response/create.schema.js';
 
 export class UserModel {
   async create(createUserDto: CreateUserDto)
@@ -13,6 +12,7 @@ export class UserModel {
       const db = getDB()
       const id = crypto.randomUUID()
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
+      const created_at = new Date()
       await db.insertInto('users')
         .values({
           id,
@@ -20,9 +20,10 @@ export class UserModel {
           first_name: createUserDto.first_name,
           last_name: createUserDto.last_name,
           password: hashedPassword,
+          created_at
         })
         .executeTakeFirst()
-      return { id: id, email: createUserDto.email, first_name: createUserDto.first_name, last_name: createUserDto.last_name }
+      return { id, email: createUserDto.email, first_name: createUserDto.first_name, last_name: createUserDto.last_name, created_at, }
 
     } catch (error) {
       console.error(error)
@@ -46,7 +47,7 @@ export class UserModel {
     if (user.password === undefined) return
     const isValid = await bcrypt.compare(password, user.password)
     if (!isValid) return
-    return { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email }
+    return { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email, created_at: user.created_at! }
   }
 
   async generateAuthToken(user: CreateUserResponseDto): Promise<string> {
