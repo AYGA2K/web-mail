@@ -1,8 +1,8 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { AuthController } from '../controllers/auth.controller.js'
-import { createUserSchema } from '../schemas/user/create-user.schema.js'
-import { loginUserSchema } from '../schemas/user/login-user.schema.js'
 import { buildOpenAPIRoute } from '../utils/openapi.util.js'
+import { createUserSchema } from '../schemas/user/request/create.schema.js'
+import { loginUserSchema } from '../schemas/user/request/login.schema.js'
 
 const authRoutes = new OpenAPIHono()
 const authController = new AuthController()

@@ -8,6 +8,7 @@ import mailRoutes from './routes/mail.routes.js'
 import { authMiddleware } from './middlewares/auth.middleware.js'
 import { swaggerUI } from '@hono/swagger-ui'
 import { OpenAPIHono } from '@hono/zod-openapi'
+import { SMTPService } from './services/smtp.service.js'
 
 const basePath = process.env.BASE_PATH ? process.env.BASE_PATH : '/api/v1'
 const app = new OpenAPIHono().basePath(basePath)
@@ -64,6 +65,8 @@ app.onError((err, c) => {
 
 // Not found
 app.notFound((c) => c.json({ error: 'Not found' }, 404))
+const smtpService = new SMTPService()
+smtpService.start()
 
 // Start server
 serve({

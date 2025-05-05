@@ -1,4 +1,4 @@
-import { baseResponseSchema } from '../schemas/user/response.schema.js'
+import { baseResponseSchema } from '../schemas/response.schema.js'
 import type { OpenAPIConfigParams } from '../types/openapi-config-params.type.js'
 
 export const buildOpenAPIRoute = ({
