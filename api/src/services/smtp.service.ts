@@ -31,15 +31,18 @@ export class SMTPService {
       stream.on('data', (chunk) => email += chunk.toString());
       stream.on('end', async () => {
         try {
-          // await this.mailModel.create({
-          //   from: session.envelope.mailFrom?.address || 'unknown@example.com',
-          //   to: session.envelope.rcptTo.map((r: any) => r.address),
-          //   subject: this.getHeader(email, 'Subject'),
-          //   body: this.getEmailBody(email),
-          //   isRead: false,
-          //   userId: "aa3f70ca-d78e-4d6f-a773-0339bdcd526d"
-          // });
-          console.log('Email received:', email);
+          console.log('From:', session.envelope.mailFrom?.address);
+          console.log('To:', session.envelope.rcptTo.map((r: any) => r.address)[0]);
+          console.log('Subject:', this.getHeader(email, 'Subject'));
+          console.log('Body:', this.getEmailBody(email));
+          await this.mailModel.create({
+            from: session.envelope.mailFrom?.address || 'unknown@example.com',
+            to: session.envelope.rcptTo.map((r: any) => r.address),
+            subject: this.getHeader(email, 'Subject'),
+            body: this.getEmailBody(email),
+            isRead: false,
+            userId: "aa3f70ca-d78e-4d6f-a773-0339bdcd526d"
+          });
           resolve();
         } catch (err) {
           reject(err);

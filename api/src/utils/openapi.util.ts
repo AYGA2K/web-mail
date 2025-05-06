@@ -8,10 +8,11 @@ export const buildOpenAPIRoute = ({
   summary,
   description,
   schema,
+  params
 }: OpenAPIConfigParams) => {
   const config: any = {
     tags: [name],
-    security: [{ Bearer: [] }],
+    // security: [{ Bearer: [] }],
     method,
     path,
     summary,
@@ -25,6 +26,7 @@ export const buildOpenAPIRoute = ({
         },
       },
     },
+    params,
   }
 
   if (schema) {
@@ -36,6 +38,11 @@ export const buildOpenAPIRoute = ({
           },
         },
       },
+    }
+  }
+  if (params) {
+    config.request = {
+      params,
     }
   }
 

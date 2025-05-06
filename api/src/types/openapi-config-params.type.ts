@@ -6,4 +6,5 @@ export type OpenAPIConfigParams = {
   summary: string
   description: string
   schema?: any
+  params?: any
 }
