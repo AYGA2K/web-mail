@@ -47,11 +47,11 @@ app.get('/ui', swaggerUI({
 }))
 app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
   type: "http",
-  scheme: "bearer",
-  bearerFormat: "JWT",
+  // scheme: "bearer",
+  // bearerFormat: "JWT",
 });
 
-app.use(authMiddleware)
+// app.use(authMiddleware)
 
 // Register your routes first
 app.route('/auth', authRoutes)

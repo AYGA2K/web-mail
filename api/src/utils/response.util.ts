@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
-import type { BaseResponse } from '../schemas/user/response.schema.js'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
+import type { BaseResponse } from '../schemas/response.schema.js'
 
 export class ApiResponse {
   static success<T>(

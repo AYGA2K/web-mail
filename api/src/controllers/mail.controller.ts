@@ -3,14 +3,17 @@ import { MailModel } from "../models/email.model.js"
 import { UserModel } from "../models/user.model.js"
 import type { CreateEmailDto } from "../schemas/emails/request/create.schema.js"
 import { ApiResponse } from "../utils/response.util.js"
+import { NodemailerService } from "../services/nodemailer.service.js"
 
 export class MailController {
   private mailModel: MailModel
   private userModel: UserModel
+  private nodemailerService: NodemailerService
 
   constructor() {
     this.mailModel = new MailModel()
     this.userModel = new UserModel()
+    this.nodemailerService = new NodemailerService()
   }
 
   async send(c: Context) {
@@ -26,8 +29,18 @@ export class MailController {
         })
       }
 
+      // Test Sending emials to external domains
+      await this.nodemailerService.sendEmail(
+        createEmailDto.from,
+        createEmailDto.to,
+        createEmailDto.subject,
+        createEmailDto.body
+      )
+
+
       // Create new email
       const email = await this.mailModel.create(createEmailDto)
+
 
       return ApiResponse.success(c, {
         data: { email },
