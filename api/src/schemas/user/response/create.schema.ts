@@ -15,7 +15,7 @@ export const createUserResponseSchema = z.object({
   last_name: z.string().openapi({
     example: 'Doe',
   }),
-  created_at: z.date().openapi({
+  created_at: z.string().openapi({
     example: '2023-03-01T12:00:00.000Z',
   }),
 }).openapi({

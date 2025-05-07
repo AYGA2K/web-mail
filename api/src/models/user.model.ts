@@ -12,7 +12,8 @@ export class UserModel {
       const db = getDB()
       const id = crypto.randomUUID()
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
-      const created_at = new Date()
+      const created_at = new Date().toISOString()
+
       await db.insertInto('users')
         .values({
           id,
