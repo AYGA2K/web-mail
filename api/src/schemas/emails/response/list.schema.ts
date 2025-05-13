@@ -20,6 +20,9 @@ export const listEmailResponseSchema = z.object({
   userId: z.string().openapi({
     example: 'clvq3yv4e000008l49y3f5q2a',
   }),
+  replyTo: z.string().nullable().optional().openapi({
+    example: 'hdchw2dhdd092989218313131',
+  }),
   created_at: z.string().nullable().openapi({
     example: '2023-03-01T12:00:00.000Z',
   }),

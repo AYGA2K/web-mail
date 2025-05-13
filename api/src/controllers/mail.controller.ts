@@ -74,6 +74,33 @@ export class MailController {
     }
   }
 
+  async getInbox(c: Context) {
+    const userId = c.req.param('userId');
+    const page = parseInt(c.req.query('page') || '1');
+    const limit = parseInt(c.req.query('limit') || '10');
+
+    try {
+      const emails = await this.mailModel.findWhere({
+        conditions: [{ column: 'to', operator: '=', value: userId }],
+        orderBy: [{ column: 'created_at', direction: 'desc' }],
+        limit,
+        offset: (page - 1) * limit
+      });
+
+      return ApiResponse.success(c, {
+        data: { emails },
+        message: 'Inbox emails retrieved successfully',
+        status: 200
+      });
+    } catch (error) {
+      return ApiResponse.error(c, {
+        status: 400,
+        message: 'Failed to retrieve inbox emails',
+      });
+    }
+  }
+
+
   async getEmail(c: Context) {
     //  TODO: Grab the user ID from the JWT token
     const userId = c.req.param('userId')

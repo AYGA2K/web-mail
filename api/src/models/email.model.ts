@@ -3,6 +3,7 @@ import type { CreateEmailMultipleRecipientsDto } from '../schemas/emails/request
 import type { CreateEmailDto } from '../schemas/emails/request/create.schema.js';
 import type { CreateEmailResponseDto } from '../schemas/emails/response/create.schema.js';
 import type { listEmailResponseDto } from '../schemas/emails/response/list.schema.js';
+import type { FindOptions } from '../types/sql-options.js';
 
 export class MailModel {
   async create(createEmailDto: CreateEmailDto): Promise<CreateEmailResponseDto> {
@@ -27,7 +28,7 @@ export class MailModel {
   }
   async createForMultipleRecipients(createEmailDto: CreateEmailMultipleRecipientsDto): Promise<CreateEmailResponseDto[]> {
     const db = getDB()
-    const created_at = new Date()
+    const created_at = new Date().toISOString()
     const results: CreateEmailResponseDto[] = []
 
     for (const recipient of createEmailDto.to) {
@@ -68,6 +69,55 @@ export class MailModel {
       .where('userId', '=', userId)
       .execute()
     return emails
+  }
+
+  async findWhere(options: FindOptions = {}): Promise<listEmailResponseDto[]> {
+    const db = getDB();
+
+    let query = db
+      .selectFrom('emails')
+      .select([
+        'id',
+        'from',
+        'to',
+        'subject',
+        'body',
+        'isRead',
+        'userId',
+        'replyTo',
+        'created_at',
+        'updated_at',
+      ]);
+
+    // Apply conditions
+    if (options.conditions?.length) {
+      for (const condition of options.conditions) {
+        if (condition.operator === 'in' && Array.isArray(condition.value)) {
+          query = query.where(condition.column, 'in', condition.value);
+        } else {
+          query = query.where(condition.column, condition.operator as any, condition.value);
+        }
+      }
+    }
+
+    // Apply groupBy
+    if (options.groupBy?.length) {
+      query = query.groupBy(options.groupBy);
+    }
+
+    // Apply orderBy
+    if (options.orderBy?.length) {
+      for (const sort of options.orderBy) {
+        query = query.orderBy(sort.column, sort.direction);
+      }
+    }
+
+    // Apply limit and offset
+    query = query
+      .limit(options.limit ?? 10)
+      .offset(options.offset ?? 0);
+    return await query.execute();
+
   }
 
   async findById(id: string, userId: string): Promise<listEmailResponseDto | undefined> {
