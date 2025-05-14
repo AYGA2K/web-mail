@@ -23,7 +23,7 @@ export const createEmailResponseSchema = z.object({
   userId: z.string().openapi({
     example: 'clvq3yv4e000008l49y3f5q2a',
   }),
-  created_at: z.string().openapi({
+  created_at: z.date().openapi({
     example: '2023-03-01T12:00:00.000Z',
   }),
 })

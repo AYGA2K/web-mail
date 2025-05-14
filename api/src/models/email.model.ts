@@ -9,7 +9,7 @@ export class MailModel {
   async create(createEmailDto: CreateEmailDto): Promise<CreateEmailResponseDto> {
     const db = getDB()
     const id = crypto.randomUUID()
-    const created_at = new Date().toISOString()
+    const created_at = new Date()
 
     await db.insertInto('emails')
       .values({
@@ -28,7 +28,7 @@ export class MailModel {
   }
   async createForMultipleRecipients(createEmailDto: CreateEmailMultipleRecipientsDto): Promise<CreateEmailResponseDto[]> {
     const db = getDB()
-    const created_at = new Date().toISOString()
+    const created_at = new Date()
     const results: CreateEmailResponseDto[] = []
 
     for (const recipient of createEmailDto.to) {
