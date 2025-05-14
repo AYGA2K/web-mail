@@ -2,3 +2,4 @@ JWT_SECRET=your-secret-key
 PORT=3000
 BASE_PATH=/api/v1
 DATABASE_NAME=webmail.db
+DOMAINE_NAME=webmail.io

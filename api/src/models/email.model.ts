@@ -1,44 +1,22 @@
 import { getDB } from '../database/db.js'
-import type { CreateEmailMultipleRecipientsDto } from '../schemas/emails/request/create-multiple.schema.js';
-import type { CreateEmailDto } from '../schemas/emails/request/create.schema.js';
-import type { CreateEmailResponseDto } from '../schemas/emails/response/create.schema.js';
-import type { listEmailResponseDto } from '../schemas/emails/response/list.schema.js';
-import type { FindOptions } from '../types/sql-options.js';
+import type { CreateEmailMultipleRecipientsDto } from '../schemas/emails/request/create-multiple.schema.js'
+import type { CreateEmailDto } from '../schemas/emails/request/create.schema.js'
+import type { CreateEmailResponseDto } from '../schemas/emails/response/create.schema.js'
+import type { listEmailResponseDto } from '../schemas/emails/response/list.schema.js'
+import type { FindOptions } from '../types/sql-options.js'
 
 export class MailModel {
   async create(createEmailDto: CreateEmailDto): Promise<CreateEmailResponseDto> {
-    const db = getDB()
-    const id = crypto.randomUUID()
-    const created_at = new Date()
-
-    await db.insertInto('emails')
-      .values({
-        id,
-        from: createEmailDto.from,
-        to: createEmailDto.to,
-        subject: createEmailDto.subject,
-        body: createEmailDto.body,
-        isRead: false,
-        userId: createEmailDto.userId,
-        created_at,
-      })
-      .execute()
-
-    return { id, from: createEmailDto.from, to: createEmailDto.to, subject: createEmailDto.subject, body: createEmailDto.body, created_at, isRead: false, userId: createEmailDto.userId }
-  }
-  async createForMultipleRecipients(createEmailDto: CreateEmailMultipleRecipientsDto): Promise<CreateEmailResponseDto[]> {
-    const db = getDB()
-    const created_at = new Date()
-    const results: CreateEmailResponseDto[] = []
-
-    for (const recipient of createEmailDto.to) {
+    try {
+      const db = getDB()
       const id = crypto.randomUUID()
+      const created_at = new Date()
 
       await db.insertInto('emails')
         .values({
           id,
           from: createEmailDto.from,
-          to: recipient,
+          to: createEmailDto.to,
           subject: createEmailDto.subject,
           body: createEmailDto.body,
           isRead: false,
@@ -47,119 +25,172 @@ export class MailModel {
         })
         .execute()
 
-      results.push({
-        id,
-        from: createEmailDto.from,
-        to: recipient,
-        subject: createEmailDto.subject,
-        body: createEmailDto.body,
-        created_at,
-        isRead: false,
-        userId: createEmailDto.userId
-      })
+      return { id, from: createEmailDto.from, to: createEmailDto.to, subject: createEmailDto.subject, body: createEmailDto.body, created_at, isRead: false, userId: createEmailDto.userId }
+    } catch (error) {
+      console.error('Error in MailModel.create:', error)
+      throw error
     }
+  }
 
-    return results
+  async createForMultipleRecipients(createEmailDto: CreateEmailMultipleRecipientsDto): Promise<CreateEmailResponseDto[]> {
+    try {
+      const db = getDB()
+      const created_at = new Date()
+      const results: CreateEmailResponseDto[] = []
+
+      for (const recipient of createEmailDto.to) {
+        const id = crypto.randomUUID()
+
+        await db.insertInto('emails')
+          .values({
+            id,
+            from: createEmailDto.from,
+            to: recipient,
+            subject: createEmailDto.subject,
+            body: createEmailDto.body,
+            isRead: false,
+            userId: createEmailDto.userId,
+            created_at,
+          })
+          .execute()
+
+        results.push({
+          id,
+          from: createEmailDto.from,
+          to: recipient,
+          subject: createEmailDto.subject,
+          body: createEmailDto.body,
+          created_at,
+          isRead: false,
+          userId: createEmailDto.userId
+        })
+      }
+
+      return results
+    } catch (error) {
+      console.error('Error in MailModel.createForMultipleRecipients:', error)
+      throw error
+    }
   }
 
   async findByUser(userId: string): Promise<listEmailResponseDto[]> {
-    const db = getDB()
-    const emails = await db.selectFrom('emails')
-      .selectAll()
-      .where('userId', '=', userId)
-      .execute()
-    return emails
+    try {
+      const db = getDB()
+      return await db.selectFrom('emails')
+        .selectAll()
+        .where('userId', '=', userId)
+        .execute()
+    } catch (error) {
+      console.error('Error in MailModel.findByUser:', error)
+      throw error
+    }
   }
 
   async findWhere(options: FindOptions = {}): Promise<listEmailResponseDto[]> {
-    const db = getDB();
+    try {
+      const db = getDB()
 
-    let query = db
-      .selectFrom('emails')
-      .select([
-        'id',
-        'from',
-        'to',
-        'subject',
-        'body',
-        'isRead',
-        'userId',
-        'replyTo',
-        'created_at',
-        'updated_at',
-      ]);
+      let query = db
+        .selectFrom('emails')
+        .select([
+          'id',
+          'from',
+          'to',
+          'subject',
+          'body',
+          'isRead',
+          'userId',
+          'replyTo',
+          'created_at',
+          'updated_at',
+        ])
 
-    // Apply conditions
-    if (options.conditions?.length) {
-      for (const condition of options.conditions) {
-        if (condition.operator === 'in' && Array.isArray(condition.value)) {
-          query = query.where(condition.column, 'in', condition.value);
-        } else {
-          query = query.where(condition.column, condition.operator as any, condition.value);
+      if (options.conditions?.length) {
+        for (const condition of options.conditions) {
+          if (condition.operator === 'in' && Array.isArray(condition.value)) {
+            query = query.where(condition.column, 'in', condition.value)
+          } else {
+            query = query.where(condition.column, condition.operator as any, condition.value)
+          }
         }
       }
-    }
 
-    // Apply groupBy
-    if (options.groupBy?.length) {
-      query = query.groupBy(options.groupBy);
-    }
-
-    // Apply orderBy
-    if (options.orderBy?.length) {
-      for (const sort of options.orderBy) {
-        query = query.orderBy(sort.column, sort.direction);
+      if (options.groupBy?.length) {
+        query = query.groupBy(options.groupBy)
       }
+
+      if (options.orderBy?.length) {
+        for (const sort of options.orderBy) {
+          query = query.orderBy(sort.column, sort.direction)
+        }
+      }
+
+      query = query
+        .limit(options.limit ?? 10)
+        .offset(options.offset ?? 0)
+
+      return await query.execute()
+    } catch (error) {
+      console.error('Error in MailModel.findWhere:', error)
+      throw error
     }
-
-    // Apply limit and offset
-    query = query
-      .limit(options.limit ?? 10)
-      .offset(options.offset ?? 0);
-    return await query.execute();
-
   }
 
   async findById(id: string, userId: string): Promise<listEmailResponseDto | undefined> {
-    const db = getDB()
-    const email = await db.selectFrom('emails')
-      .selectAll()
-      .where('id', '=', id)
-      .where('userId', '=', userId)
-      .executeTakeFirst()
+    try {
+      const db = getDB()
+      const email = await db.selectFrom('emails')
+        .selectAll()
+        .where('id', '=', id)
+        .where('userId', '=', userId)
+        .executeTakeFirst()
 
-    return email ?? undefined
+      return email ?? undefined
+    } catch (error) {
+      console.error('Error in MailModel.findById:', error)
+      throw error
+    }
   }
 
   async markAsRead(id: string, userId: string): Promise<listEmailResponseDto | undefined> {
-    const db = getDB()
-    const email = await db.selectFrom('emails')
-      .selectAll()
-      .where('id', '=', id)
-      .where('userId', '=', userId)
-      .executeTakeFirst()
+    try {
+      const db = getDB()
+      const email = await db.selectFrom('emails')
+        .selectAll()
+        .where('id', '=', id)
+        .where('userId', '=', userId)
+        .executeTakeFirst()
 
-    if (email) {
-      await db.updateTable('emails')
-        .set({ isRead: true })
+      if (email) {
+        await db.updateTable('emails')
+          .set({ isRead: true })
+          .where('id', '=', id)
+          .where('userId', '=', userId)
+          .execute()
+
+        email.isRead = true
+        return email
+      }
+
+      return undefined
+    } catch (error) {
+      console.error('Error in MailModel.markAsRead:', error)
+      throw error
+    }
+  }
+
+  async delete(id: string, userId: string): Promise<boolean> {
+    try {
+      const db = getDB()
+      const result = await db.deleteFrom('emails')
         .where('id', '=', id)
         .where('userId', '=', userId)
         .execute()
 
-      email.isRead = true
-      return email
+      return result.length > 0
+    } catch (error) {
+      console.error('Error in MailModel.delete:', error)
+      throw error
     }
-
-    return undefined
-  }
-
-  async delete(id: string, userId: string): Promise<boolean> {
-    const db = getDB()
-    const result = await db.deleteFrom('emails')
-      .where('id', '=', id)
-      .where('userId', '=', userId)
-      .execute()
-
-    return result.length > 0
   }
 }

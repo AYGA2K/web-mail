@@ -3,6 +3,7 @@ import { UserModel } from "../models/user.model.js"
 import type { CreateUserDto } from "../schemas/user/request/create.schema.js"
 import { ApiResponse } from "../utils/response.util.js"
 
+
 export class AuthController {
   private userModel: UserModel
 
@@ -11,32 +12,20 @@ export class AuthController {
   }
 
   register = async (c: Context) => {
+    const createUserDto: CreateUserDto = await c.req.json()
+
     try {
-      const createUserDto: CreateUserDto = await c.req.json()
-
-      // Check if user already exists
-      const existingUser = await this.userModel.findByEmail(createUserDto.email)
-      if (existingUser) {
-        return ApiResponse.error(c, {
-          status: 400,
-          message: 'Email already in use',
-        })
-      }
-
-      // Create new user
       const user = await this.userModel.create(createUserDto)
-      if (!user) {
-        return ApiResponse.internalServerError(c, 'Registration failed')
-      }
-
       return ApiResponse.success(c, {
         data: { user },
         message: 'User registered successfully',
         status: 201
       })
-    } catch (error) {
-      console.error(error)
-      return ApiResponse.internalServerError(c, 'Registration failed')
+    } catch (error: any) {
+      return ApiResponse.error(c, {
+        status: 400,
+        message: error.message,
+      })
     }
   }
 
@@ -46,7 +35,7 @@ export class AuthController {
       const user = await this.userModel.verifyCredentials(email, password)
 
       if (!user) {
-        return ApiResponse.unauthorized(c, 'Invalid credentials')
+        return ApiResponse.unauthorized(c, 'Invalid email or password')
       }
 
       const token = await this.userModel.generateAuthToken(user)
@@ -61,7 +50,7 @@ export class AuthController {
         message: 'Login successful'
       })
     } catch (error) {
-      console.error(error)
+      console.error('Login error:', error)
       return ApiResponse.error(c, {
         status: 400,
         message: 'Login failed',
@@ -72,7 +61,7 @@ export class AuthController {
   me = async (c: Context) => {
     try {
       const authHeader = c.req.header('Authorization')
-      if (!authHeader) {
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return ApiResponse.unauthorized(c)
       }
 
@@ -88,7 +77,7 @@ export class AuthController {
         message: 'User profile retrieved successfully'
       })
     } catch (error) {
-      console.error(error)
+      console.error('Me endpoint error:', error)
       return ApiResponse.unauthorized(c)
     }
   }
