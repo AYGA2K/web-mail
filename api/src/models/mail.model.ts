@@ -10,7 +10,7 @@ export class MailModel {
     try {
       const db = getDB()
       const id = crypto.randomUUID()
-      const created_at = new Date()
+      const created_at = new Date().toISOString()
 
       await db.insertInto('emails')
         .values({

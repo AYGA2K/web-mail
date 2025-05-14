@@ -11,14 +11,14 @@ export class UserModel {
     const db = getDB()
     const id = crypto.randomUUID()
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10)
-    const created_at = new Date()
+    const created_at = new Date().toISOString()
 
     const userNameExists = await this.userNameExists(createUserDto.user_name)
     if (userNameExists) {
       throw new Error('Username already exists')
     }
 
-    const email = createUserDto.user_name + process.env.DOMAINE_NAME
+    const email = createUserDto.user_name + "@" + process.env.DOMAINE_NAME
 
     try {
       await db.insertInto('users')

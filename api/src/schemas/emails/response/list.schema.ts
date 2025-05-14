@@ -23,10 +23,10 @@ export const listEmailResponseSchema = z.object({
   replyTo: z.string().nullable().optional().openapi({
     example: 'hdchw2dhdd092989218313131',
   }),
-  created_at: z.date().nullable().openapi({
+  created_at: z.string().nullable().openapi({
     example: '2023-03-01T12:00:00.000Z',
   }),
-  updated_at: z.date().nullable().openapi({
+  updated_at: z.string().nullable().openapi({
     example: '2023-03-01T12:00:00.000Z',
   }),
 })

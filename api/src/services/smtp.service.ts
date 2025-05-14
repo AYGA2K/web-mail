@@ -1,5 +1,5 @@
 import { SMTPServer } from 'smtp-server';
-import { MailModel } from '../models/email.model.js';
+import { MailModel } from '../models/mail.model.js';
 
 export class SMTPService {
   private server: SMTPServer;

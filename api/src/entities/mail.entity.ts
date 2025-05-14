@@ -7,6 +7,6 @@ export interface Email {
   isRead: boolean;
   userId: string;
   replyTo: string | null;
-  created_at: Date;
-  updated_at: Date | null;
+  created_at: string;
+  updated_at: string | null;
 }

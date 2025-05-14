@@ -5,6 +5,6 @@ export interface User {
   first_name: string
   last_name: string
   password: string
-  created_at: Date;
-  updated_at: Date | null;
+  created_at: string;
+  updated_at: string | null;
 }

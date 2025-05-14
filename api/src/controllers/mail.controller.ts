@@ -1,4 +1,4 @@
-import { MailModel } from "../models/email.model.js"
+import { MailModel } from "../models/mail.model.js"
 import { UserModel } from "../models/user.model.js"
 import type { CreateEmailDto } from "../schemas/emails/request/create.schema.js"
 import { ApiResponse } from "../utils/response.util.js"
