@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
+import { useToast } from "~/hooks/use-toast"
+
 
 interface Props {
   type: "login" | "signup"
@@ -18,27 +20,42 @@ export function AuthForm({ type }: Props) {
   } = useForm()
   const navigate = useNavigate()
   const [apiError, setApiError] = useState("")
+  const { toast } = useToast()
 
   const isSignup = type === "signup"
   const password = watch("password")
 
   const onSubmit = async (data: any) => {
     setApiError("")
-    let Url = `${import.meta.env.API_BASE_URL}/auth/login`
+    let url = `${import.meta.env.VITE_API_BASE_URL}/auth/login`
     if (isSignup) {
-      Url = `${import.meta.env.API_BASE_URL}/auth/signup`
+      url = `${import.meta.env.VITE_API_BASE_URL}/auth/register`
     }
     try {
-      const res = await fetch(Url, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
 
+      console.log(res)
       const result = await res.json()
+      console.log(result)
       if (!res.ok) throw new Error(result.message || "Something went wrong")
 
-      navigate("/dashboard")
+      toast({
+        title: isSignup ? "Account Created" : "Login Successful",
+        description: isSignup
+          ? "Your account has been created successfully. Please log in."
+          : "You have been logged in successfully.",
+        className: "bg-green-600 text-white border-green-700",
+      })
+
+      if (isSignup) {
+        navigate("/login")
+      } else {
+        navigate("/")
+      }
     } catch (err: any) {
       setApiError(err.message)
     }
@@ -59,47 +76,70 @@ export function AuthForm({ type }: Props) {
 
       {isSignup && (
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name</Label>
+          <Label htmlFor="first_name">First Name</Label>
           <Input
             type="text"
-            id="firstName"
-            {...register("firstName", {
+            id="first_name"
+            {...register("first_name", {
               required: "First Name is required",
             })}
           />
-          {errors.firstName && (
-            <p className="text-sm text-red-500">{errors.firstName.message as string}</p>
-          )}
-        </div>
-      )}
-      {isSignup && (
-        // last name
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
-          <Input
-            type="text"
-            id="lastName"
-            {...register("lastName", {
-              required: "Last Name is required",
-            })}
-          />
-          {errors.lastName && (
-            <p className="text-sm text-red-500">{errors.lastName.message as string}</p>
+          {errors.first_name && (
+            <p className="text-sm text-red-500">{errors.first_name.message as string}</p>
           )}
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email address</Label>
-        <Input
-          type="email"
-          id="email"
-          {...register("email", { required: "Email is required" })}
-        />
-        {errors.email && (
-          <p className="text-sm text-red-500">{errors.email.message as string}</p>
-        )}
-      </div>
+      {isSignup && (
+        <div className="space-y-2">
+          <Label htmlFor="last_name">Last Name</Label>
+          <Input
+            type="text"
+            id="last_name"
+            {...register("last_name", {
+              required: "Last Name is required",
+            })}
+          />
+          {errors.last_name && (
+            <p className="text-sm text-red-500">{errors.last_name.message as string}</p>
+          )}
+        </div>
+      )}
+
+      {isSignup && (
+        <div className="space-y-2">
+          <Label htmlFor="user_name">Username</Label>
+          <Input
+            type="text"
+            id="user_name"
+            {...register("user_name", {
+              required: "User Name is required",
+              pattern: {
+                value: /^(?!.*\.\.)(?!\.)(?!.*\.$)[a-z0-9.]{6,30}$/,
+                message:
+                  "Username must be 6–30 characters, lowercase letters, numbers, or dots. Cannot start/end with dot or contain consecutive dots.",
+              },
+            })}
+          />
+          {errors.user_name && (
+            <p className="text-sm text-red-500">{errors.user_name.message as string}</p>
+          )}
+        </div>
+      )}
+
+      {!isSignup && (
+        <div className="space-y-2">
+          <Label htmlFor="email">Email address</Label>
+          <Input
+            type="email"
+            id="email"
+            {...register("email", { required: "Email is required" })}
+          />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email.message as string}</p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
@@ -115,19 +155,19 @@ export function AuthForm({ type }: Props) {
 
       {isSignup && (
         <div className="space-y-2">
-          <Label htmlFor="repeatPassword">Repeat Password</Label>
+          <Label htmlFor="repeat_password">Repeat Password</Label>
           <Input
             type="password"
-            id="repeatPassword"
-            {...register("repeatPassword", {
+            id="repeat_password"
+            {...register("repeat_password", {
               required: "Please repeat your password",
               validate: (value) =>
                 value === password || "Passwords do not match",
             })}
           />
-          {errors.repeatPassword && (
+          {errors.repeat_password && (
             <p className="text-sm text-red-500">
-              {errors.repeatPassword.message as string}
+              {errors.repeat_password.message as string}
             </p>
           )}
         </div>
