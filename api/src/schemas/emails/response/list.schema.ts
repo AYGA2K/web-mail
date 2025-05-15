@@ -14,13 +14,13 @@ export const listEmailResponseSchema = z.object({
   body: z.string().openapi({
     example: 'Hello',
   }),
-  isRead: z.boolean().openapi({
-    example: false,
+  is_read: z.number().openapi({
+    example: 0,
   }),
-  userId: z.string().openapi({
+  user_id: z.string().openapi({
     example: 'clvq3yv4e000008l49y3f5q2a',
   }),
-  replyTo: z.string().nullable().optional().openapi({
+  reply_to: z.string().nullable().optional().openapi({
     example: 'hdchw2dhdd092989218313131',
   }),
   created_at: z.string().nullable().openapi({

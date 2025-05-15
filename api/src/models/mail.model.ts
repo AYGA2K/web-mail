@@ -19,13 +19,13 @@ export class MailModel {
           to: createEmailDto.to,
           subject: createEmailDto.subject,
           body: createEmailDto.body,
-          isRead: false,
-          userId: createEmailDto.userId,
+          is_read: 0,
+          user_id: createEmailDto.user_id,
           created_at,
         })
         .execute()
 
-      return { id, from: createEmailDto.from, to: createEmailDto.to, subject: createEmailDto.subject, body: createEmailDto.body, created_at, isRead: false, userId: createEmailDto.userId }
+      return { id, from: createEmailDto.from, to: createEmailDto.to, subject: createEmailDto.subject, body: createEmailDto.body, created_at, isRead: false, userId: createEmailDto.user_id }
     } catch (error) {
       console.error('Error in MailModel.create:', error)
       throw error
@@ -35,12 +35,11 @@ export class MailModel {
   async createForMultipleRecipients(createEmailDto: CreateEmailMultipleRecipientsDto): Promise<CreateEmailResponseDto[]> {
     try {
       const db = getDB()
-      const created_at = new Date()
       const results: CreateEmailResponseDto[] = []
 
       for (const recipient of createEmailDto.to) {
         const id = crypto.randomUUID()
-
+        const created_at = new Date().toISOString()
         await db.insertInto('emails')
           .values({
             id,
@@ -48,8 +47,8 @@ export class MailModel {
             to: recipient,
             subject: createEmailDto.subject,
             body: createEmailDto.body,
-            isRead: false,
-            userId: createEmailDto.userId,
+            is_read: 0,
+            user_id: createEmailDto.user_id,
             created_at,
           })
           .execute()
@@ -62,7 +61,7 @@ export class MailModel {
           body: createEmailDto.body,
           created_at,
           isRead: false,
-          userId: createEmailDto.userId
+          userId: createEmailDto.user_id
         })
       }
 
@@ -78,7 +77,7 @@ export class MailModel {
       const db = getDB()
       return await db.selectFrom('emails')
         .selectAll()
-        .where('userId', '=', userId)
+        .where('user_id', '=', userId)
         .execute()
     } catch (error) {
       console.error('Error in MailModel.findByUser:', error)
@@ -98,9 +97,9 @@ export class MailModel {
           'to',
           'subject',
           'body',
-          'isRead',
-          'userId',
-          'replyTo',
+          'is_read',
+          'user_id',
+          'reply_to',
           'created_at',
           'updated_at',
         ])
@@ -142,7 +141,7 @@ export class MailModel {
       const email = await db.selectFrom('emails')
         .selectAll()
         .where('id', '=', id)
-        .where('userId', '=', userId)
+        .where('user_id', '=', userId)
         .executeTakeFirst()
 
       return email ?? undefined
@@ -158,23 +157,23 @@ export class MailModel {
       const email = await db.selectFrom('emails')
         .selectAll()
         .where('id', '=', id)
-        .where('userId', '=', userId)
+        .where('user_id', '=', userId)
         .executeTakeFirst()
 
       if (email) {
         await db.updateTable('emails')
-          .set({ isRead: true })
+          .set({ is_read: 1 })
           .where('id', '=', id)
-          .where('userId', '=', userId)
+          .where('user_id', '=', userId)
           .execute()
 
-        email.isRead = true
+        email.is_read = 1
         return email
       }
 
       return undefined
     } catch (error) {
-      console.error('Error in MailModel.markAsRead:', error)
+      console.error('', error)
       throw error
     }
   }
@@ -184,7 +183,7 @@ export class MailModel {
       const db = getDB()
       const result = await db.deleteFrom('emails')
         .where('id', '=', id)
-        .where('userId', '=', userId)
+        .where('user_id', '=', userId)
         .execute()
 
       return result.length > 0
