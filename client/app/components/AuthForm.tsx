@@ -1,14 +1,13 @@
-import { useForm } from "react-hook-form"
-import { Link, useNavigate } from "@remix-run/react"
-import { useState } from "react"
-import { Label } from "./ui/label"
-import { Input } from "./ui/input"
-import { Button } from "./ui/button"
-import { useToast } from "~/hooks/use-toast"
-
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "@remix-run/react";
+import { useState } from "react";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { useToast } from "~/hooks/use-toast";
 
 interface Props {
-  type: "login" | "signup"
+  type: "login" | "signup";
 }
 
 export function AuthForm({ type }: Props) {
@@ -17,31 +16,31 @@ export function AuthForm({ type }: Props) {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm()
-  const navigate = useNavigate()
-  const [apiError, setApiError] = useState("")
-  const { toast } = useToast()
+  } = useForm();
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState("");
+  const { toast } = useToast();
 
-  const isSignup = type === "signup"
-  const password = watch("password")
+  const isSignup = type === "signup";
+  const password = watch("password");
 
   const onSubmit = async (data: any) => {
-    setApiError("")
-    let url = `${import.meta.env.VITE_API_BASE_URL}/auth/login`
+    setApiError("");
+    let url = `${import.meta.env.VITE_API_BASE_URL}/auth/login`;
     if (isSignup) {
-      url = `${import.meta.env.VITE_API_BASE_URL}/auth/register`
+      url = `${import.meta.env.VITE_API_BASE_URL}/auth/register`;
     }
     try {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      })
+      });
 
-      console.log(res)
-      const result = await res.json()
-      console.log(result)
-      if (!res.ok) throw new Error(result.message || "Something went wrong")
+      console.log(res);
+      const result = await res.json();
+      console.log(result);
+      if (!res.ok) throw new Error(result.message || "Something went wrong");
 
       toast({
         title: isSignup ? "Account Created" : "Login Successful",
@@ -49,17 +48,17 @@ export function AuthForm({ type }: Props) {
           ? "Your account has been created successfully. Please log in."
           : "You have been logged in successfully.",
         className: "bg-green-600 text-white border-green-700",
-      })
+      });
 
       if (isSignup) {
-        navigate("/login")
+        navigate("/login");
       } else {
-        navigate("/")
+        navigate("/");
       }
     } catch (err: any) {
-      setApiError(err.message)
+      setApiError(err.message);
     }
-  }
+  };
 
   return (
     <form
@@ -85,7 +84,9 @@ export function AuthForm({ type }: Props) {
             })}
           />
           {errors.first_name && (
-            <p className="text-sm text-red-500">{errors.first_name.message as string}</p>
+            <p className="text-sm text-red-500">
+              {errors.first_name.message as string}
+            </p>
           )}
         </div>
       )}
@@ -101,7 +102,9 @@ export function AuthForm({ type }: Props) {
             })}
           />
           {errors.last_name && (
-            <p className="text-sm text-red-500">{errors.last_name.message as string}</p>
+            <p className="text-sm text-red-500">
+              {errors.last_name.message as string}
+            </p>
           )}
         </div>
       )}
@@ -122,7 +125,9 @@ export function AuthForm({ type }: Props) {
             })}
           />
           {errors.user_name && (
-            <p className="text-sm text-red-500">{errors.user_name.message as string}</p>
+            <p className="text-sm text-red-500">
+              {errors.user_name.message as string}
+            </p>
           )}
         </div>
       )}
@@ -136,7 +141,9 @@ export function AuthForm({ type }: Props) {
             {...register("email", { required: "Email is required" })}
           />
           {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message as string}</p>
+            <p className="text-sm text-red-500">
+              {errors.email.message as string}
+            </p>
           )}
         </div>
       )}
@@ -149,7 +156,9 @@ export function AuthForm({ type }: Props) {
           {...register("password", { required: "Password is required" })}
         />
         {errors.password && (
-          <p className="text-sm text-red-500">{errors.password.message as string}</p>
+          <p className="text-sm text-red-500">
+            {errors.password.message as string}
+          </p>
         )}
       </div>
 
@@ -175,7 +184,10 @@ export function AuthForm({ type }: Props) {
 
       {!isSignup && (
         <div className="text-right">
-          <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-blue-600 hover:underline"
+          >
             Forgot password?
           </Link>
         </div>
@@ -203,5 +215,5 @@ export function AuthForm({ type }: Props) {
         )}
       </div>
     </form>
-  )
+  );
 }
