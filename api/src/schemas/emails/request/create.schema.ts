@@ -14,10 +14,7 @@ export const createEmailSchema = z.object({
   body: z.string().openapi({
     example: 'Hello',
   }),
-  isRead: z.boolean().openapi({
-    example: false,
-  }),
-  userId: z.string().openapi({
+  user_id: z.string().openapi({
     example: 'clvq3yv4e000008l49y3f5q2a',
   }),
 })

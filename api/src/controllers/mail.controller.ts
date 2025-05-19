@@ -1,9 +1,9 @@
-import type { Context } from "hono";
-import { MailModel } from "../models/email.model.js";
+import { MailModel } from "../models/mail.model.js";
 import { UserModel } from "../models/user.model.js";
 import type { CreateEmailDto } from "../schemas/emails/request/create.schema.js";
 import { ApiResponse } from "../utils/response.util.js";
 import { NodemailerService } from "../services/nodemailer.service.js";
+import type { Context } from "hono";
 
 export class MailController {
   private mailModel: MailModel;
@@ -29,7 +29,6 @@ export class MailController {
         });
       }
 
-      // Test Sending emials to external domains
       await this.nodemailerService.sendEmail(
         createEmailDto.from,
         createEmailDto.to,
@@ -73,10 +72,10 @@ export class MailController {
   }
 
   async getInbox(c: Context) {
-    const userId = c.req.param("userId");
+    const user = c.get("get");
+    const userId = user.id;
     const page = parseInt(c.req.query("page") || "1");
     const limit = parseInt(c.req.query("limit") || "10");
-
     try {
       const emails = await this.mailModel.findWhere({
         conditions: [{ column: "to", operator: "=", value: userId }],
@@ -90,10 +89,10 @@ export class MailController {
         message: "Inbox emails retrieved successfully",
         status: 200,
       });
-    } catch (error) {
+    } catch (error: any) {
       return ApiResponse.error(c, {
         status: 400,
-        message: "Failed to retrieve inbox emails",
+        message: error.message || "Failed to retrieve inbox emails",
       });
     }
   }
@@ -119,10 +118,10 @@ export class MailController {
         message: "Email retrieved successfully",
         status: 200,
       });
-    } catch (error) {
+    } catch (error: any) {
       return ApiResponse.error(c, {
         status: 400,
-        message: "Failed to retrieve email",
+        message: error.message || "Failed to retrieve email",
       });
     }
   }
@@ -140,12 +139,11 @@ export class MailController {
           message: "Email not found",
         });
       }
-
       return c.json({ email });
-    } catch (error) {
+    } catch (error: any) {
       return ApiResponse.error(c, {
         status: 400,
-        message: "Failed to mark email as read",
+        message: error.message || "Failed to mark email as read",
       });
     }
   }
@@ -169,10 +167,10 @@ export class MailController {
         message: "Email deleted successfully",
         status: 200,
       });
-    } catch (error) {
+    } catch (error: any) {
       return ApiResponse.error(c, {
         status: 400,
-        message: "Failed to delete email",
+        message: error.message || "Failed to delete email",
       });
     }
   }

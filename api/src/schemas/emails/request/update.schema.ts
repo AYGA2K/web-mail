@@ -14,7 +14,7 @@ export const updateEmailSchema = z.object({
   body: z.string().openapi({
     example: 'Hello',
   }),
-  isRead: z.boolean().openapi({
+  is_read: z.boolean().openapi({
     example: false,
   }),
 })
