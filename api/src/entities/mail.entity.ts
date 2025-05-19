@@ -1,4 +1,4 @@
-type Bit = 0 | 1
+type Bit = 0 | 1;
 export interface Email {
   id: string;
   from: string;

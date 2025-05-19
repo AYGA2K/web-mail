@@ -1,5 +1,5 @@
-import { baseResponseSchema } from '../schemas/response.schema.js'
-import type { OpenAPIConfigParams } from '../types/openapi-config-params.type.js'
+import { baseResponseSchema } from "../schemas/response.schema.js";
+import type { OpenAPIConfigParams } from "../types/openapi-config-params.type.js";
 
 export const buildOpenAPIRoute = ({
   name,
@@ -8,7 +8,7 @@ export const buildOpenAPIRoute = ({
   summary,
   description,
   schema,
-  params
+  params,
 }: OpenAPIConfigParams) => {
   const config: any = {
     tags: [name],
@@ -20,31 +20,31 @@ export const buildOpenAPIRoute = ({
       default: {
         description,
         content: {
-          'application/json': {
+          "application/json": {
             schema: baseResponseSchema,
           },
         },
       },
     },
     params,
-  }
+  };
 
   if (schema) {
     config.request = {
       body: {
         content: {
-          'application/json': {
+          "application/json": {
             schema,
           },
         },
       },
-    }
+    };
   }
   if (params) {
     config.request = {
       params,
-    }
+    };
   }
 
-  return config
-}
+  return config;
+};

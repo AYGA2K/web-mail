@@ -8,5 +8,4 @@ export type FindOptions = {
   offset?: number;
   orderBy?: SortOption[];
   groupBy?: (keyof Email)[];
-
 };

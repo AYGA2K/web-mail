@@ -1,80 +1,79 @@
-import { z } from 'zod'
-import { OpenAPIHono } from '@hono/zod-openapi'
-import { MailController } from '../controllers/mail.controller.js'
-import { buildOpenAPIRoute } from '../utils/openapi.util.js'
-import { createEmailSchema } from '../schemas/emails/request/create.schema.js'
+import { z } from "zod";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { MailController } from "../controllers/mail.controller.js";
+import { buildOpenAPIRoute } from "../utils/openapi.util.js";
+import { createEmailSchema } from "../schemas/emails/request/create.schema.js";
 
-const mailRoutes = new OpenAPIHono()
-const mailController = new MailController()
+const mailRoutes = new OpenAPIHono();
+const mailController = new MailController();
 
 mailRoutes.openapi(
   buildOpenAPIRoute({
-    name: 'Mail',
-    method: 'post',
-    path: '/send',
-    summary: 'Send an email',
-    description: 'Send a new email message',
+    name: "Mail",
+    method: "post",
+    path: "/send",
+    summary: "Send an email",
+    description: "Send a new email message",
     schema: createEmailSchema,
   }),
-  mailController.send
-)
+  mailController.send,
+);
 
 mailRoutes.openapi(
   buildOpenAPIRoute({
-    name: 'Mail',
-    method: 'delete',
-    path: '/:id',
-    summary: 'Delete an email',
-    description: 'Delete an email by ID',
+    name: "Mail",
+    method: "delete",
+    path: "/:id",
+    summary: "Delete an email",
+    description: "Delete an email by ID",
     params: z.object({
-      id: z.string().uuid().describe('Email ID'),
+      id: z.string().uuid().describe("Email ID"),
     }),
   }),
-  mailController.deleteEmail
-)
+  mailController.deleteEmail,
+);
 
 mailRoutes.openapi(
   buildOpenAPIRoute({
-    name: 'Mail',
-    method: 'get',
-    path: '/:userId',
-    summary: 'Get all emails for a user',
-    description: 'Fetch all emails for a given user',
+    name: "Mail",
+    method: "get",
+    path: "/:userId",
+    summary: "Get all emails for a user",
+    description: "Fetch all emails for a given user",
     params: z.object({
-      userId: z.string().uuid().describe('User ID'),
+      userId: z.string().uuid().describe("User ID"),
     }),
   }),
-  mailController.getEmailsByUser
-)
+  mailController.getEmailsByUser,
+);
 
 mailRoutes.openapi(
   buildOpenAPIRoute({
-    name: 'Mail',
-    method: 'patch',
-    path: '/:id/read',
-    summary: 'Mark email as read',
-    description: 'Mark an email as read by ID',
+    name: "Mail",
+    method: "patch",
+    path: "/:id/read",
+    summary: "Mark email as read",
+    description: "Mark an email as read by ID",
     params: z.object({
-      id: z.string().uuid().describe('Email ID'),
+      id: z.string().uuid().describe("Email ID"),
     }),
   }),
-  mailController.markAsRead
-)
+  mailController.markAsRead,
+);
 
 mailRoutes.openapi(
   buildOpenAPIRoute({
-    name: 'Mail',
-    method: 'get',
-    path: '/:userId/:emailId',
-    summary: 'Get specific email',
-    description: 'Retrieve a specific email by user and email ID',
+    name: "Mail",
+    method: "get",
+    path: "/:userId/:emailId",
+    summary: "Get specific email",
+    description: "Retrieve a specific email by user and email ID",
     params: z.object({
-      userId: z.string().uuid().describe('User ID'),
-      emailId: z.string().uuid().describe('Email ID'),
+      userId: z.string().uuid().describe("User ID"),
+      emailId: z.string().uuid().describe("Email ID"),
     }),
   }),
-  mailController.getEmail
-)
+  mailController.getEmail,
+);
 
-export default mailRoutes
-
+export default mailRoutes;
