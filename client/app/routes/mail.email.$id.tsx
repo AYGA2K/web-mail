@@ -1,9 +1,9 @@
-import { useNavigate } from "@remix-run/react";
-import EmailList from "~/components/email-list";
+import { useParams } from "@remix-run/react";
+import { EmailView } from "~/components/email-view";
 import type { Email } from "~/types/email";
 
-export default function InboxPage() {
-  const navigate = useNavigate();
+export default function EmailViewPage() {
+  const { id } = useParams();
   
   const emails: Email[] = [
     {
@@ -127,17 +127,12 @@ export default function InboxPage() {
       labels: ["Work", "Reports"],
     }
   ];
+  
+  const email = emails.find(e => e.id === parseInt(id || "0"));
 
   return (
-    <div className="flex flex-col h-screen max-h-screen">
-      <div className="overflow-auto">
-        <EmailList
-          emails={emails}
-          onEmailSelect={(emailId) => {
-            navigate(`/mail/email/${emailId}`);
-          }}
-        />
-      </div>
+    <div className="flex flex-col h-screen max-h-screen overflow-auto">
+      <EmailView email={email} />
     </div>
   );
 }

@@ -2,35 +2,22 @@ import { Star, Archive, Trash2, Mail, Clock } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { Button } from "./ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import type { Email } from "~/types/email";
 
-export default function EmailList() {
-  // Mock data
-  const emails = [
-    {
-      id: 1,
-      starred: true,
-      read: false,
-      sender: "GitHub",
-      subject: "Your repository has been updated",
-      preview: "We've detected new commits to your repository...",
-      time: "10:30 AM",
-      labels: ["Work"],
-    },
-    {
-      id: 2,
-      starred: false,
-      read: true,
-      sender: "Twitter",
-      subject: "New followers on your account",
-      preview: "You have 5 new followers this week...",
-      time: "Yesterday",
-      labels: ["Social"],
-    },
-    // More emails...
-  ];
+interface EmailListProps {
+  emails: Email[];
+  onEmailSelect?: (emailId: number) => void;
+}
+
+export default function EmailList({ emails, onEmailSelect }: EmailListProps) {
+  const handleEmailClick = (emailId: number) => {
+    if (onEmailSelect) {
+      onEmailSelect(emailId);
+    }
+  };
 
   return (
-    <div className="rounded-md border w-full">
+    <div className=" w-full h-full">
       <Table>
         <TableHeader>
           <TableRow>
@@ -46,7 +33,11 @@ export default function EmailList() {
         </TableHeader>
         <TableBody>
           {emails.map((email) => (
-            <TableRow key={email.id} className={email.read ? "bg-muted/50" : ""}>
+            <TableRow
+              key={email.id}
+              className={`${email.read ? "bg-muted/50" : ""} cursor-pointer hover:bg-muted/80`}
+              onClick={() => handleEmailClick(email.id)}
+            >
               <TableCell>
                 <Checkbox />
               </TableCell>
